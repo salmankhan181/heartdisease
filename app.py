@@ -25,22 +25,23 @@ st.markdown(
 st.subheader("Model Selection")
 model_name = st.selectbox(
     "Choose prediction model",
-    {
-        "Logistic Regression (Fast & Interpretable)": "logistic_regression",
-        "Random Forest (Higher Accuracy)": "random_forest"
-    }.keys()
+    ["Logistic Regression (Fast & Interpretable)", "Random Forest (Higher Accuracy)"]
 )
 
-model = joblib.load(MODEL_DIR / {
+# Map readable names to model filenames
+MODEL_MAP = {
     "Logistic Regression (Fast & Interpretable)": "logistic_regression",
     "Random Forest (Higher Accuracy)": "random_forest"
-}[model_name] + ".joblib")
+}
+
+# Load model safely
+model_file = MODEL_MAP[model_name] + ".joblib"
+model = joblib.load(MODEL_DIR / model_file)
 
 st.divider()
 
 # Patient info
 st.subheader("Patient Information")
-
 col1, col2 = st.columns(2)
 
 with col1:
@@ -53,21 +54,12 @@ with col1:
 with col2:
     cp = st.selectbox(
         "Chest Pain Type",
-        {
-            "Typical Angina": 0,
-            "Atypical Angina": 1,
-            "Non-anginal Pain": 2,
-            "Asymptomatic": 3
-        }.keys()
+        ["Typical Angina", "Atypical Angina", "Non-anginal Pain", "Asymptomatic"]
     )
     fbs = st.radio("Fasting Blood Sugar > 120 mg/dl", ["No", "Yes"])
     restecg = st.selectbox(
         "Resting ECG Result",
-        {
-            "Normal": 0,
-            "ST-T Wave Abnormality": 1,
-            "Left Ventricular Hypertrophy": 2
-        }.keys()
+        ["Normal", "ST-T Wave Abnormality", "Left Ventricular Hypertrophy"]
     )
     exang = st.radio("Exercise Induced Angina", ["No", "Yes"])
     oldpeak = st.slider("ST Depression Induced by Exercise", 0.0, 6.0, 1.0)
@@ -79,58 +71,34 @@ col3, col4 = st.columns(2)
 with col3:
     slope = st.selectbox(
         "Slope of Peak Exercise ST Segment",
-        {
-            "Upsloping": 0,
-            "Flat": 1,
-            "Downsloping": 2
-        }.keys()
+        ["Upsloping", "Flat", "Downsloping"]
     )
 
 with col4:
     ca = st.selectbox("Number of Major Vessels (0–3)", [0, 1, 2, 3])
     thal = st.selectbox(
         "Thalassemia",
-        {
-            "Normal": 1,
-            "Fixed Defect": 2,
-            "Reversible Defect": 3
-        }.keys()
+        ["Normal", "Fixed Defect", "Reversible Defect"]
     )
 
-# Convert to model format
+# Convert user input to model format
 input_data = {
     "age": age,
     "sex": 1 if sex == "Male" else 0,
-    "cp": {
-        "Typical Angina": 0,
-        "Atypical Angina": 1,
-        "Non-anginal Pain": 2,
-        "Asymptomatic": 3
-    }[cp],
+    "cp": {"Typical Angina":0, "Atypical Angina":1, "Non-anginal Pain":2, "Asymptomatic":3}[cp],
     "trestbps": trestbps,
     "chol": chol,
     "fbs": 1 if fbs == "Yes" else 0,
-    "restecg": {
-        "Normal": 0,
-        "ST-T Wave Abnormality": 1,
-        "Left Ventricular Hypertrophy": 2
-    }[restecg],
+    "restecg": {"Normal":0, "ST-T Wave Abnormality":1, "Left Ventricular Hypertrophy":2}[restecg],
     "thalach": thalach,
     "exang": 1 if exang == "Yes" else 0,
     "oldpeak": oldpeak,
-    "slope": {
-        "Upsloping": 0,
-        "Flat": 1,
-        "Downsloping": 2
-    }[slope],
+    "slope": {"Upsloping":0, "Flat":1, "Downsloping":2}[slope],
     "ca": ca,
-    "thal": {
-        "Normal": 1,
-        "Fixed Defect": 2,
-        "Reversible Defect": 3
-    }[thal]
+    "thal": {"Normal":1, "Fixed Defect":2, "Reversible Defect":3}[thal]
 }
 
+# Prediction button
 if st.button("🔍 Predict Risk"):
     df_input = pd.DataFrame([input_data])
     prediction = model.predict(df_input)[0]

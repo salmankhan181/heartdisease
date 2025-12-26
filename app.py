@@ -8,40 +8,51 @@ from src.utils import FEATURE_COLUMNS
 BASE_DIR = Path(__file__).resolve().parent
 MODEL_DIR = BASE_DIR / "models"
 
-# Page config
 st.set_page_config(
     page_title="Heart Disease Risk Predictor",
     layout="centered"
 )
 
-# Title
 st.title("❤️ Heart Disease Risk Prediction")
 st.markdown(
     "This application estimates the **risk of heart disease** based on clinical parameters. "
     "It is intended for **educational purposes only**, not medical diagnosis."
 )
 
-# Model selection
+# ------------------ MODEL SELECTION ------------------
 st.subheader("Model Selection")
+
 model_name = st.selectbox(
     "Choose prediction model",
-    ["Logistic Regression (Fast & Interpretable)", "Random Forest (Higher Accuracy)"]
+    [
+        "Logistic Regression (Fast & Interpretable)",
+        "Random Forest (Higher Accuracy)",
+        "Support Vector Machine (Robust)",
+        "K-Means (Unsupervised Clustering)"
+    ]
 )
 
-# Map readable names to model filenames
 MODEL_MAP = {
-    "Logistic Regression (Fast & Interpretable)": "logistic_regression",
-    "Random Forest (Higher Accuracy)": "random_forest"
+    "Logistic Regression (Fast & Interpretable)": "logistic_regression.joblib",
+    "Random Forest (Higher Accuracy)": "random_forest.joblib",
+    "Support Vector Machine (Robust)": "svm.joblib",
+    "K-Means (Unsupervised Clustering)": "kmeans.joblib"
 }
 
-# Load model safely
-model_file = MODEL_MAP[model_name] + ".joblib"
-model = joblib.load(MODEL_DIR / model_file)
+model_file = MODEL_MAP[model_name]
+
+# Safe loading
+try:
+    model = joblib.load(MODEL_DIR / model_file)
+except Exception:
+    st.error("Selected model failed to load. Please check model compatibility.")
+    st.stop()
 
 st.divider()
 
-# Patient info
+# ------------------ INPUT UI ------------------
 st.subheader("Patient Information")
+
 col1, col2 = st.columns(2)
 
 with col1:
@@ -81,7 +92,7 @@ with col4:
         ["Normal", "Fixed Defect", "Reversible Defect"]
     )
 
-# Convert user input to model format
+# ------------------ INPUT DATA ------------------
 input_data = {
     "age": age,
     "sex": 1 if sex == "Male" else 0,
@@ -98,11 +109,24 @@ input_data = {
     "thal": {"Normal":1, "Fixed Defect":2, "Reversible Defect":3}[thal]
 }
 
-# Prediction button
+df_input = pd.DataFrame([input_data])
+
+# ------------------ PREDICTION ------------------
 if st.button("🔍 Predict Risk"):
-    df_input = pd.DataFrame([input_data])
-    prediction = model.predict(df_input)[0]
-    probability = model.predict_proba(df_input)[0][1]
+
+    if "K-Means" in model_name:
+        pre = model["preprocessor"]
+        km = model["kmeans"]
+        risk_map = model["cluster_risk"]
+
+        Xp = pre.transform(df_input)
+        cluster = km.predict(Xp)[0]
+        probability = risk_map[int(cluster)]
+        prediction = int(probability >= 0.5)
+
+    else:
+        prediction = model.predict(df_input)[0]
+        probability = model.predict_proba(df_input)[0][1]
 
     st.divider()
 

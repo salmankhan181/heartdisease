@@ -1,0 +1,3 @@
+This project uses heart disease database from kaggle and is used to train different AI algorithms, the saved models are uploaded to the folder models. The python code is in the fole app.py. 
+All this data is then used to create a userfriendly app on streamlit.io, a free app hosting website.
+Please note that this app is just a proof of concept, it's not accurate because the database used for training purpose is very small and there are better AI models other than those implemented here hence it is advised to use this model for research purposes only and the results should be used with a pinch of salt.

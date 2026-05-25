@@ -130,7 +130,7 @@ if st.button("🔍 Predict Risk"):
 
     st.divider()
 
-    if prediction == 1:
+    if prediction == 0:
         st.error(f"⚠️ **High Risk of Heart Disease**\n\nEstimated Risk: **{probability:.1%}**")
     else:
         st.success(f"✅ **Low Risk of Heart Disease**\n\nEstimated Risk: **{probability:.1%}**")
